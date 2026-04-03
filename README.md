@@ -1,10 +1,10 @@
 # priceit
 A simple calculator to help sole trader get the fair paid
-PriceLogic v1.2 🇳🇿
+Price it🇳🇿
 
-PriceLogic v1.2 🇳🇿
+Price it 🇳🇿
 
-PriceLogic is a pricing logic reconstruction tool designed specifically for independent artisans in New Zealand. It is more than just a calculator—it is a strategic tool that helps creators find a balance between artistic sensibility and business logic.
+Price it 🇳🇿 is a pricing logic reconstruction tool designed specifically for independent artisans in New Zealand. It is more than just a calculator—it is a strategic tool that helps creators find a balance between artistic sensibility and business logic.
 
 Core Logic
 
