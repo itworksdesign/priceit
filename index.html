@@ -7,7 +7,6 @@
     <!-- 使用标准 CDN 链接 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://js.stripe.com/v3/"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
         body { 
@@ -44,6 +43,7 @@
         }
         .survival-input:focus { box-shadow: none !important; border-bottom-color: white !important; }
         
+        /* 导出 PDF 时隐藏按钮区域 */
         @media print {
             .no-print { display: none !important; }
         }
@@ -60,7 +60,7 @@
                     <p class="text-gray-500 text-sm mt-1">Logic-based pricing reconstruction tool v1.2</p>
                 </div>
                 <div class="text-xs text-gray-400 uppercase tracking-widest bg-white px-3 py-1 border border-gray-200 rounded-full no-print">
-                    Mode: Professional Artisan
+                    Mode: Free Access
                 </div>
             </div>
         </header>
@@ -159,11 +159,8 @@
 
                         <div class="mt-8 no-print">
                             <button id="exportBtn" onclick="handleExportClick()" class="w-full bg-white text-black py-4 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-gray-200 transition-all">
-                                <span id="btnText">Export PDF (1 NZD)</span>
+                                <span>Download PDF Report</span>
                             </button>
-                            <p id="simLink" class="text-[9px] text-center text-gray-500 mt-3 cursor-pointer" onclick="unlockPayment()">
-                                [ Simulation Mode ]
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -173,7 +170,6 @@
 
     <script>
         const inputs = ['matCost', 'wastage', 'hours', 'hourlyRate', 'overhead', 'margin', 'gst', 'targetIncome'];
-        let isPaid = false;
 
         function calculate() {
             const v = {};
@@ -198,26 +194,15 @@
         }
 
         function handleExportClick() {
-            if (isPaid) {
-                const element = document.getElementById('content-to-export');
-                const opt = {
-                    margin: [10, 10],
-                    filename: 'PriceIt_Report.pdf',
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2 },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                };
-                html2pdf().set(opt).from(element).save();
-            } else {
-                alert('请先点击下方的 Simulation Mode 模拟支付。');
-            }
-        }
-
-        function unlockPayment() {
-            isPaid = true;
-            document.getElementById('btnText').innerText = "Export PDF Now";
-            document.getElementById('simLink').innerText = "✅ Simulation Active";
-            alert('模拟支付成功！现在可以导出 PDF 了。');
+            const element = document.getElementById('content-to-export');
+            const opt = {
+                margin: [10, 10],
+                filename: 'PriceIt_Report.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
         }
 
         document.querySelectorAll('input').forEach(input => {
