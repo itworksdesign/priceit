@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price it | Professional Pricing Tool</title>
+    <!-- 使用标准 CDN 链接 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f4f4f4; 
+            color: #1a1a1a; 
+            -webkit-font-smoothing: antialiased;
+        }
+        input { 
+            border: 1px solid #e0e0e0; 
+            background: #fff;
+            transition: all 0.2s; 
+            border-radius: 8px;
+        }
+        input:focus { 
+            border-color: #000; 
+            outline: none; 
+            box-shadow: 0 0 0 1px #000;
+        }
+        .result-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        .survival-input {
+            background: transparent !important;
+            border: none !important;
+            border-bottom: 1px solid #444 !important;
+            color: white !important;
+            padding: 0 4px !important;
+            width: 80px !important;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.125rem;
+            border-radius: 0 !important;
+        }
+        .survival-input:focus { box-shadow: none !important; border-bottom-color: white !important; }
+        
+        @media print {
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="py-8 px-4 md:py-20" id="content-to-export">
+
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <header class="mb-12 md:mb-20">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-semibold tracking-tighter">itworks design / Price it</h1>
+                    <p class="text-gray-500 text-sm mt-1">Logic-based pricing reconstruction tool v1.2</p>
+                </div>
+                <div class="text-xs text-gray-400 uppercase tracking-widest bg-white px-3 py-1 border border-gray-200 rounded-full no-print">
+                    Mode: Professional Artisan
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <!-- Left: Inputs -->
+            <div class="lg:col-span-7 space-y-12">
+                <section>
+                    <div class="flex items-center gap-4 mb-6">
+                        <span class="w-6 h-px bg-black"></span>
+                        <h2 class="text-xs font-bold uppercase tracking-widest text-black">01. Hard Costs</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-medium mb-2 text-gray-600 uppercase">Material Total (NZD)</label>
+                            <input type="number" id="matCost" class="w-full p-4 bg-white" placeholder="0.00">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium mb-2 text-gray-600 uppercase">Wastage Reserve (%)</label>
+                            <input type="number" id="wastage" class="w-full p-4 bg-white" value="15">
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <div class="flex items-center gap-4 mb-6">
+                        <span class="w-6 h-px bg-black"></span>
+                        <h2 class="text-xs font-bold uppercase tracking-widest text-black">02. Labor & Overhead</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-medium mb-2 text-gray-600 uppercase">Labor Hours (Hr)</label>
+                            <input type="number" id="hours" class="w-full p-4 bg-white" placeholder="1.0">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium mb-2 text-gray-600 uppercase">Hourly Rate (NZD/Hr)</label>
+                            <input type="number" id="hourlyRate" class="w-full p-4 bg-white" value="25">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-medium mb-2 text-gray-600 uppercase">Overhead Amortization (NZD/unit)</label>
+                            <input type="number" id="overhead" class="w-full p-4 bg-white" value="5.00">
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <div class="flex items-center gap-4 mb-6">
+                        <span class="w-6 h-px bg-black"></span>
+                        <h2 class="text-xs font-bold uppercase tracking-widest text-black">03. Strategy</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-medium mb-2 text-gray-600 uppercase">Target Margin (%)</label>
+                            <input type="number" id="margin" class="w-full p-4 bg-white" value="30">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium mb-2 text-gray-600 uppercase">GST (%)</label>
+                            <input type="number" id="gst" class="w-full p-4 bg-white" value="15">
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Dashboard -->
+            <div class="lg:col-span-5">
+                <div class="sticky top-8">
+                    <div class="bg-black text-white p-8 md:p-12 rounded-2xl shadow-2xl relative overflow-hidden">
+                        <div class="mb-10">
+                            <p class="result-label text-gray-500 mb-2">Recommended RRP (Inc. GST)</p>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-2xl font-light text-gray-400">$</span>
+                                <span id="displayRRP" class="text-6xl font-semibold tracking-tighter">0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-8 py-8 border-y border-white/10">
+                            <div>
+                                <p class="result-label text-gray-500 mb-2">Break-even</p>
+                                <p id="displayBreakeven" class="text-xl font-medium">$ 0.00</p>
+                            </div>
+                            <div>
+                                <p class="result-label text-gray-500 mb-2">Take-home/Unit</p>
+                                <p id="displayTotalTake" class="text-xl font-medium text-emerald-400">$ 0.00</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-8">
+                            <div class="bg-white/5 p-4 rounded-xl">
+                                <p class="text-[10px] uppercase tracking-widest text-gray-500 mb-3">Survival Insight</p>
+                                <div class="text-sm text-gray-300">
+                                    If monthly cost is $ <input type="number" id="targetIncome" class="survival-input" value="4000">, 
+                                    sell <span id="survivalCount" class="text-white font-bold text-lg">0</span> units.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 no-print">
+                            <button id="exportBtn" onclick="handleExportClick()" class="w-full bg-white text-black py-4 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-gray-200 transition-all">
+                                <span id="btnText">Export PDF (1 NZD)</span>
+                            </button>
+                            <p id="simLink" class="text-[9px] text-center text-gray-500 mt-3 cursor-pointer" onclick="unlockPayment()">
+                                [ Simulation Mode ]
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const inputs = ['matCost', 'wastage', 'hours', 'hourlyRate', 'overhead', 'margin', 'gst', 'targetIncome'];
+        let isPaid = false;
+
+        function calculate() {
+            const v = {};
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                v[id] = el ? parseFloat(el.value) || 0 : 0;
+            });
+
+            const totalMat = v.matCost * (1 + v.wastage / 100);
+            const laborCost = v.hours * v.hourlyRate;
+            const costOfProd = totalMat + laborCost + v.overhead;
+            const rrpPreGST = v.margin < 100 ? costOfProd / (1 - v.margin / 100) : costOfProd * 2;
+            const finalRRP = rrpPreGST * (1 + v.gst / 100);
+            const netProfit = rrpPreGST - costOfProd;
+            const totalTake = laborCost + netProfit;
+            const survival = (totalTake > 0) ? Math.ceil(v.targetIncome / totalTake) : '∞';
+
+            document.getElementById('displayRRP').innerText = finalRRP.toFixed(2);
+            document.getElementById('displayBreakeven').innerText = '$ ' + (costOfProd * (1 + v.gst / 100)).toFixed(2);
+            document.getElementById('displayTotalTake').innerText = '$ ' + totalTake.toFixed(2);
+            document.getElementById('survivalCount').innerText = survival;
+        }
+
+        function handleExportClick() {
+            if (isPaid) {
+                const element = document.getElementById('content-to-export');
+                const opt = {
+                    margin: [10, 10],
+                    filename: 'PriceIt_Report.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(element).save();
+            } else {
+                alert('请先点击下方的 Simulation Mode 模拟支付。');
+            }
+        }
+
+        function unlockPayment() {
+            isPaid = true;
+            document.getElementById('btnText').innerText = "Export PDF Now";
+            document.getElementById('simLink').innerText = "✅ Simulation Active";
+            alert('模拟支付成功！现在可以导出 PDF 了。');
+        }
+
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', calculate);
+        });
+
+        window.onload = calculate;
+    </script>
+</body>
+</html>
